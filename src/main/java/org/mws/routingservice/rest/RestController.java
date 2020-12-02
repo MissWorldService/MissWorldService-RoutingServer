@@ -1,6 +1,7 @@
 package org.mws.routingservice.rest;
 
 import org.mws.routingservice.dto.AuthenticationRequestDto;
+import org.mws.routingservice.dto.RegistrationRequestDto;
 import org.mws.routingservice.model.User;
 import org.mws.routingservice.security.jwt.JwtTokenProvider;
 import org.mws.routingservice.service.UserService;
@@ -51,7 +52,7 @@ public class RestController {
             }
             boolean passwordMatches = bCryptPasswordEncoder.matches(password,user.getPassword());
             if (!passwordMatches){
-                return ResponseEntity.badRequest().body("Password is incorrect");
+                throw new UsernameNotFoundException("User with such username not found");
             }
             String token = jwtTokenProvider.createToken(username);
             Map<Object, Object> response = new HashMap<>();
@@ -63,10 +64,14 @@ public class RestController {
         }
     }
     @PostMapping("register")
-    public void createUser(){
+    public ResponseEntity register(@RequestBody RegistrationRequestDto requestDto){
         User user = new User();
-        user.setUsername("user");
-        user.setPassword("text");
+        user.setUsername(requestDto.getUsername());
+        user.setPassword(requestDto.getPassword());
         userService.register(user);
+        Map<Object, Object> response = new HashMap<>();
+        response.put("username", requestDto.getUsername());
+        response.put("success", "Y");
+        return ResponseEntity.ok(response);
     }
 }
