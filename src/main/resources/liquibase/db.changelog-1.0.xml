@@ -13,4 +13,20 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="1.0.2" author="moiwa">
+        <createTable tableName="estimation_servers">
+            <column name="server_id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="ip" type="VARCHAR(15)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active_flag" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1.0.3" author="moiwa">
+        <createSequence sequenceName="server_id_sequence" />
+    </changeSet>
 </databaseChangeLog>

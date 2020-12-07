@@ -1,9 +1,12 @@
 package org.mws.routingservice.rest;
 
 import org.mws.routingservice.dto.AuthenticationRequestDto;
+import org.mws.routingservice.dto.EvaluationRequestDto;
 import org.mws.routingservice.dto.RegistrationRequestDto;
+import org.mws.routingservice.dto.ServerRegistrationRequestDto;
 import org.mws.routingservice.model.User;
 import org.mws.routingservice.security.jwt.JwtTokenProvider;
+import org.mws.routingservice.service.EstimationServerService;
 import org.mws.routingservice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +31,8 @@ public class RestController {
 
     private final UserService userService;
 
+    private final EstimationServerService estimationServerService;
+
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -35,10 +40,11 @@ public class RestController {
 
 
     @Autowired
-    public RestController(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserService userService) throws Exception {
+    public RestController(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserService userService, EstimationServerService estimationServerService) throws Exception {
         this.authenticationManager =  authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
+        this.estimationServerService = estimationServerService;
     }
 
     @PostMapping("login")
@@ -72,6 +78,21 @@ public class RestController {
         Map<Object, Object> response = new HashMap<>();
         response.put("username", requestDto.getUsername());
         response.put("success", "Y");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("evaluate")
+    public ResponseEntity evaluate(@RequestBody EvaluationRequestDto requestDto){
+
+        Map<Object, Object> response = new HashMap<>();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("register_server")
+    public ResponseEntity registerServer(@RequestBody ServerRegistrationRequestDto requestDto){
+        estimationServerService.addServer(requestDto.getIp());
+        Map<Object, Object> response = new HashMap<>();
+        response.put("Result","Success");
         return ResponseEntity.ok(response);
     }
 }
