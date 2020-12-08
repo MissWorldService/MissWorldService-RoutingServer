@@ -6,5 +6,7 @@ import lombok.Data;
 public class EvaluationRequestDto {
     private String token;
 
-    private String webUrl;
+    private String modelUrl;
+
+    private String datasetUrl;
 }
