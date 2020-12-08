@@ -4,9 +4,11 @@ import org.mws.routingservice.dto.AuthenticationRequestDto;
 import org.mws.routingservice.dto.EvaluationRequestDto;
 import org.mws.routingservice.dto.RegistrationRequestDto;
 import org.mws.routingservice.dto.ServerRegistrationRequestDto;
+import org.mws.routingservice.model.EstimationServer;
 import org.mws.routingservice.model.User;
+import org.mws.routingservice.security.JwtEstimationServerService;
 import org.mws.routingservice.security.jwt.JwtTokenProvider;
-import org.mws.routingservice.service.EstimationServerService;
+import org.mws.routingservice.security.jwt.Server.JwtEstimationServer;
 import org.mws.routingservice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @org.springframework.web.bind.annotation.RestController
@@ -31,20 +34,17 @@ public class RestController {
 
     private final UserService userService;
 
-    private final EstimationServerService estimationServerService;
+    @Autowired
+    private JwtEstimationServerService jwtEstimationServerService;
 
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
-
-
-
     @Autowired
-    public RestController(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserService userService, EstimationServerService estimationServerService) throws Exception {
+    public RestController(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserService userService) throws Exception {
         this.authenticationManager =  authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
-        this.estimationServerService = estimationServerService;
     }
 
     @PostMapping("login")
@@ -83,16 +83,18 @@ public class RestController {
 
     @PostMapping("evaluate")
     public ResponseEntity evaluate(@RequestBody EvaluationRequestDto requestDto){
-
+        List<EstimationServer> estimationServers = jwtEstimationServerService.getAllActiveServers();
         Map<Object, Object> response = new HashMap<>();
+        response.put("Result","Success");
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("register_server")
     public ResponseEntity registerServer(@RequestBody ServerRegistrationRequestDto requestDto){
-        estimationServerService.addServer(requestDto.getIp());
+        JwtEstimationServer estimationServer = jwtEstimationServerService.createServer(requestDto.getIp());
         Map<Object, Object> response = new HashMap<>();
         response.put("Result","Success");
+        response.put("Token", estimationServer.getToken());
         return ResponseEntity.ok(response);
     }
 }

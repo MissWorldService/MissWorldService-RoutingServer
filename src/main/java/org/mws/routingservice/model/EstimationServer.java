@@ -1,7 +1,6 @@
 package org.mws.routingservice.model;
 
 import lombok.Data;
-import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 
@@ -10,7 +9,9 @@ import javax.persistence.*;
 @Data
 public class EstimationServer {
 
-
+    public EstimationServer(String ip){
+        setIp(ip);
+    }
     @Column(name = "server_id")
     @Id
     @SequenceGenerator(name="server_sequence", sequenceName="server_id_sequence", allocationSize=1)
@@ -23,5 +24,7 @@ public class EstimationServer {
     @Column(name = "active_flag")
     Boolean activeFlag;
 
+    @Column
+    String token;
 
 }

@@ -1,4 +1,4 @@
-package org.mws.routingservice.security.jwt;
+package org.mws.routingservice.security.jwt.User;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

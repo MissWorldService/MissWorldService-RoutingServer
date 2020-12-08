@@ -1,4 +1,4 @@
-package org.mws.routingservice.security.jwt;
+package org.mws.routingservice.security.jwt.User;
 
 import org.mws.routingservice.model.User;
 

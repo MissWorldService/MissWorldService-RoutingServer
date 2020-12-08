@@ -45,6 +45,18 @@ public class JwtTokenProvider {
         Date validity = java.sql.Date.valueOf(LocalDateTime.now().plusSeconds(validityInSeconds).toLocalDate());
         Date now = new Date();
 
+        return formToken(claims, validity, now);
+    }
+
+    public String createToken(Long serverId, String ip){
+        Claims claims = Jwts.claims().setSubject(ip);
+        Date validity = java.sql.Date.valueOf(LocalDateTime.now().plusSeconds(validityInSeconds).toLocalDate());
+        Date now = new Date();
+        claims.put("serverID",serverId);
+        return formToken(claims, validity, now);
+    }
+
+    private String formToken(Claims claims, Date validity, Date now) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)

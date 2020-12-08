@@ -2,8 +2,8 @@ package org.mws.routingservice.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.mws.routingservice.model.User;
-import org.mws.routingservice.security.jwt.JwtUser;
-import org.mws.routingservice.security.jwt.JwtUserFactory;
+import org.mws.routingservice.security.jwt.User.JwtUser;
+import org.mws.routingservice.security.jwt.User.JwtUserFactory;
 import org.mws.routingservice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

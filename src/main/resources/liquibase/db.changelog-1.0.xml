@@ -24,9 +24,15 @@
             <column name="active_flag" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>
+            <column name="token" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
     <changeSet id="1.0.3" author="moiwa">
         <createSequence sequenceName="server_id_sequence" />
     </changeSet>
+<!--     <changeSet id="1.0.4" author="moiwa">-->
+<!--         -->
+<!--     </changeSet>-->
 </databaseChangeLog>
