@@ -11,4 +11,8 @@ public interface EstimationServerService {
     EstimationServer addServer(String ip);
 
     public List<EstimationServer> getAllActiveServers();
+
+    EstimationServer updateStatus(Long id, Boolean status);
+
+    public List<EstimationServer> findAllServers();
 }

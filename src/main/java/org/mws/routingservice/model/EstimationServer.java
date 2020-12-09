@@ -9,6 +9,8 @@ import javax.persistence.*;
 @Data
 public class EstimationServer {
 
+    public EstimationServer(){}
+
     public EstimationServer(String ip){
         setIp(ip);
     }

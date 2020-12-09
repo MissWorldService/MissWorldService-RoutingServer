@@ -44,4 +44,19 @@ public class EstimationServerServiceImpl implements EstimationServerService {
         estimationServers = estimationServerRepository.findAllByActiveFlag(true);
         return estimationServers;
     }
+
+    @Override
+    public EstimationServer updateStatus(Long id, Boolean status) {
+        EstimationServer server = findServerById(id);
+        server.setActiveFlag(status);
+        estimationServerRepository.save(server);
+        return null;
+    }
+
+    @Override
+    public List<EstimationServer> findAllServers() {
+        List<EstimationServer> estimationServers;
+        estimationServers = estimationServerRepository.findAll();
+        return estimationServers;
+    }
 }
