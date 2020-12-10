@@ -1,5 +1,6 @@
 package org.mws.routingservice.rest;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -9,6 +10,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.mws.routingservice.StatusChecker;
 import org.mws.routingservice.dto.AuthenticationRequestDto;
 import org.mws.routingservice.dto.EvaluationRequestDto;
@@ -109,7 +111,9 @@ public class RestController {
             jwtEstimationServerService.updateStatus(estimationServer.getServerId(),true);
             StatusChecker statusChecker = new StatusChecker();
             statusChecker.start();
-
+            HttpEntity entity = evaluationResponse.getEntity();
+            String data = EntityUtils.toString(entity);
+            response.put("Data", data);
             response.put("Result", "Success");
         }
         else{
