@@ -9,4 +9,6 @@ public class EvaluationRequestDto {
     private String modelUrl;
 
     private String datasetUrl;
+
+    private String type;
 }

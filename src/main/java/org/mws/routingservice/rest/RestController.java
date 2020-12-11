@@ -1,20 +1,12 @@
 package org.mws.routingservice.rest;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import lombok.val;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
 import org.mws.routingservice.StatusChecker;
-import org.mws.routingservice.dto.AuthenticationRequestDto;
-import org.mws.routingservice.dto.EvaluationRequestDto;
-import org.mws.routingservice.dto.RegistrationRequestDto;
+import org.mws.routingservice.dto.*;
 import org.mws.routingservice.model.EstimationServer;
 import org.mws.routingservice.model.User;
 import org.mws.routingservice.security.JwtEstimationServerService;
@@ -22,20 +14,21 @@ import org.mws.routingservice.security.jwt.JwtTokenProvider;
 import org.mws.routingservice.security.jwt.Server.JwtEstimationServer;
 import org.mws.routingservice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,22 +91,22 @@ public class RestController {
     }
 
     @PostMapping("evaluate")
-    public ResponseEntity evaluate(@RequestBody EvaluationRequestDto requestDto) throws IOException, URISyntaxException {
+    public ResponseEntity evaluate(@RequestBody EvaluationRequestDto requestDto) throws IOException, URISyntaxException, JSONException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         List<EstimationServer> estimationServers = jwtEstimationServerService.getAllActiveServers();
         Map<Object, Object> response = new HashMap<>();
-        if(estimationServers.size()>0) {
-            EstimationServer estimationServer = estimationServers.get(0);
-            jwtEstimationServerService.updateStatus(estimationServer.getServerId(),false);
-            sendPost(httpClient, estimationServer, ":5000/upload-testset-from-url/", requestDto.getDatasetUrl());
-            sendPost(httpClient, estimationServer, ":5000/upload-model-from-url/", requestDto.getModelUrl());
-            CloseableHttpResponse evaluationResponse = sendGet(httpClient, estimationServer);
-            jwtEstimationServerService.updateStatus(estimationServer.getServerId(),true);
-            StatusChecker statusChecker = new StatusChecker();
-            statusChecker.start();
-            HttpEntity entity = evaluationResponse.getEntity();
-            String data = EntityUtils.toString(entity);
-            response.put("Data", data);
+        if(estimationServers.size()>=0) {
+            EstimationServer estimationServer = new EstimationServer();//estimationServers.get(0);
+            //jwtEstimationServerService.updateStatus(estimationServer.getServerId(),false);
+            sendPost(httpClient, estimationServer, ":80/upload-testset-from-url/", requestDto.getDatasetUrl());
+            sendPost(httpClient, estimationServer, ":80/upload-model-from-url/", requestDto.getModelUrl());
+            ResponseEntity<Map> evaluationResponse = sendGet(requestDto.getType());
+            //jwtEstimationServerService.updateStatus(estimationServer.getServerId(),true);
+            //StatusChecker statusChecker = new StatusChecker();
+            //statusChecker.start();
+            //HttpEntity entity = evaluationResponse.getEntity();
+            //String data = EntityUtils.toString(entity);
+            response.put("Data", evaluationResponse.getBody().get("metrics"));
             response.put("Result", "Success");
         }
         else{
@@ -124,20 +117,31 @@ public class RestController {
         return ResponseEntity.ok(response);
     }
 
-    private CloseableHttpResponse sendGet(CloseableHttpClient httpClient, EstimationServer estimationServer) throws URISyntaxException, IOException {
-        URIBuilder uriBuilder = new URIBuilder("http://" + estimationServer.getIp() + ":5000/evaluate/");
-        uriBuilder.setParameter("type","classification");
-        HttpGet evaluateRequest = new HttpGet(uriBuilder.build());
-        CloseableHttpResponse response = httpClient.execute(evaluateRequest);
+    private ResponseEntity<Map> sendGet(String type) throws URISyntaxException, IOException {
+        URIBuilder uriBuilder = new URIBuilder("http://" +/* estimationServer.getIp()*/  "52.15.232.97" + "/evaluate/");
+        RestTemplate restTemplate = new RestTemplate();
+        EvaluateRequestDto data = new EvaluateRequestDto();
+        data.setType(type);
+        System.out.println(data);
+        val response =  restTemplate.exchange(uriBuilder.build(),
+                HttpMethod.POST,
+                new org.springframework.http.HttpEntity<EvaluateRequestDto>(data, new HttpHeaders()),
+                Map.class);
         return response;
     }
 
-    private void sendPost(CloseableHttpClient httpClient, EstimationServer estimationServer, String portAndEndpoint, String url) throws IOException {
-        HttpPost testSetRequest = new HttpPost("http://" + estimationServer.getIp() + portAndEndpoint);
-        List<NameValuePair> testSetParameters = new ArrayList<>();
-        testSetParameters.add(new BasicNameValuePair("url", url));
-        testSetRequest.setEntity(new UrlEncodedFormEntity(testSetParameters));
-        CloseableHttpResponse testSetResponse = httpClient.execute(testSetRequest);
+    private void sendPost(CloseableHttpClient httpClient, EstimationServer estimationServer, String portAndEndpoint, String url) throws IOException, JSONException, URISyntaxException {
+        URIBuilder uriBuilder = new URIBuilder("http://" +/* estimationServer.getIp()*/  "52.15.232.97" + portAndEndpoint);
+
+        RestTemplate restTemplate = new RestTemplate();
+        PostToServerRequestDto data = new PostToServerRequestDto();
+        data.setUrl(url);
+        val response =  restTemplate.exchange(uriBuilder.build(),
+                HttpMethod.POST,
+                new org.springframework.http.HttpEntity<PostToServerRequestDto>(data, new HttpHeaders()),
+                Map.class);
+        //CloseableHttpResponse testSetResponse = httpClient.execute(testSetRequest);
+
     }
 
     @PostMapping("register_server")
@@ -150,25 +154,4 @@ public class RestController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("ping")
-    public void ping() throws URISyntaxException, IOException {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        List<EstimationServer> estimationServers = jwtEstimationServerService.getAllActiveServers();
-        EstimationServer estimationServer = estimationServers.get(0);
-        URIBuilder uriBuilder = new URIBuilder("http://156.2.34.11" /*+ estimationServer.getIp()*/ + ":8080/api/a");
-        uriBuilder.setParameter("type","classification");
-        HttpGet evaluateRequest = new HttpGet(uriBuilder.build());
-        try {
-            CloseableHttpResponse response = httpClient.execute(evaluateRequest);
-        }catch (Exception e){
-            jwtEstimationServerService.updateStatus(estimationServer.getServerId(),false);
-        }
-
-        System.out.println(1);
-    }
-
-    @GetMapping("a")
-    public boolean a(){
-        return true;
-    }
 }
